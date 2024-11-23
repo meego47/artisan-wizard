@@ -5,29 +5,14 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/meego47/artisan-wizard/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/meego47/artisan-wizard/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/meego47/artisan-wizard.svg?style=flat-square)](https://packagist.org/packages/meego47/artisan-wizard)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+Artisan Wizard is a Laravel package that provides an interactive interface for running Artisan commands. It helps developers streamline their workflow by allowing them to interactively select, configure, and execute Artisan commands within a simple, guided process. This package is ideal for those looking to automate repetitive tasks, fill in required command arguments and options step-by-step, and execute commands with ease—all from within the Laravel environment.
 
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/artisan-wizard.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/artisan-wizard)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
-
-## Installation
+## Installation (TBD)
 
 You can install the package via composer:
 
 ```bash
 composer require meego47/artisan-wizard
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="artisan-wizard-migrations"
-php artisan migrate
 ```
 
 You can publish the config file with:
@@ -42,18 +27,10 @@ This is the contents of the published config file:
 return [
 ];
 ```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="artisan-wizard-views"
-```
-
 ## Usage
 
-```php
-$artisanWizard = new Antcode\ArtisanWizard();
-echo $artisanWizard->echoPhrase('Hello, Antcode!');
+```sh
+php artisan artisan-wizard:run
 ```
 
 ## Testing
