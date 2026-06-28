@@ -1,0 +1,93 @@
+<svg width="1200" height="380" viewBox="0 0 1200 380" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Artisan Wizard — interactive Artisan commands for Laravel">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1B1533"/>
+      <stop offset="0.55" stop-color="#130F25"/>
+      <stop offset="1" stop-color="#0C0A1A"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#6D28D9"/>
+    </linearGradient>
+    <linearGradient id="title" x1="205" y1="120" x2="205" y2="185" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D8D2F0"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="70" y1="120" x2="180" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#241C42"/>
+      <stop offset="1" stop-color="#1A1430"/>
+    </linearGradient>
+    <symbol id="spark" viewBox="-6 -6 12 12">
+      <path d="M0,-6 C0.5,-2 2,-0.5 6,0 C2,0.5 0.5,2 0,6 C-0.5,2 -2,0.5 -6,0 C-2,-0.5 -0.5,-2 0,-6 Z" fill="currentColor"/>
+    </symbol>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="380" rx="26" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1198" height="378" rx="25" fill="none" stroke="#3A2F66" stroke-opacity="0.5"/>
+
+  <!-- Decorative sparkles -->
+  <g opacity="0.8">
+    <use href="#spark" x="556" y="70" width="20" height="20" color="#FBBF24"/>
+    <use href="#spark" x="612" y="250" width="13" height="13" color="#A78BFA"/>
+    <use href="#spark" x="118" y="300" width="15" height="15" color="#8B5CF6"/>
+    <use href="#spark" x="640" y="120" width="10" height="10" color="#FFFFFF" opacity="0.7"/>
+  </g>
+
+  <!-- Emblem badge with wizard hat -->
+  <rect x="70" y="120" width="110" height="110" rx="26" fill="url(#badge)" stroke="#4C3A85" stroke-opacity="0.6"/>
+  <g transform="translate(91,135)">
+    <!-- hat brim -->
+    <ellipse cx="34" cy="76" rx="42" ry="10" fill="#5B21B6"/>
+    <ellipse cx="34" cy="73" rx="42" ry="10" fill="#7C3AED"/>
+    <!-- hat cone -->
+    <path d="M34 2 L60 70 L8 70 Z" fill="url(#hat)"/>
+    <!-- band -->
+    <path d="M16 52 L52 52 L56 62 L12 62 Z" fill="#4C1D95"/>
+    <!-- stars on the hat -->
+    <use href="#spark" x="28" y="20" width="14" height="14" color="#FBBF24"/>
+    <use href="#spark" x="20" y="44" width="9" height="9" color="#FDE68A"/>
+    <use href="#spark" x="40" y="42" width="8" height="8" color="#FDE68A"/>
+  </g>
+
+  <!-- Title + tagline -->
+  <text x="205" y="168" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="58" font-weight="800" fill="url(#title)" letter-spacing="-1">Artisan Wizard</text>
+  <rect x="207" y="184" width="156" height="4" rx="2" fill="#FF2D20"/>
+  <text x="207" y="222" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="23" font-weight="500" fill="#A79FC8">Interactive Artisan commands for Laravel</text>
+
+  <!-- Command pill -->
+  <rect x="207" y="248" width="372" height="44" rx="10" fill="#0E0B1C" stroke="#3A2F66" stroke-opacity="0.7"/>
+  <text x="226" y="276" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace" font-size="18" fill="#C9C2E6"><tspan fill="#34D399">$</tspan> php artisan <tspan fill="#FFFFFF" font-weight="700">artisan-wizard:run</tspan></text>
+
+  <!-- Terminal card -->
+  <g>
+    <rect x="655" y="55" width="475" height="270" rx="16" fill="#100D1E" stroke="#3A2F66" stroke-opacity="0.7"/>
+    <!-- title bar -->
+    <path d="M655 71 a16 16 0 0 1 16 -16 h443 a16 16 0 0 1 16 16 v22 h-475 Z" fill="#1A1530"/>
+    <circle cx="681" cy="78" r="6" fill="#FF5F57"/>
+    <circle cx="701" cy="78" r="6" fill="#FEBC2E"/>
+    <circle cx="721" cy="78" r="6" fill="#28C840"/>
+    <text x="892" y="83" text-anchor="middle" font-family="'JetBrains Mono','SFMono-Regular',Menlo,monospace" font-size="13" fill="#6F6790">artisan-wizard</text>
+
+    <!-- terminal body -->
+    <g font-family="'JetBrains Mono','SFMono-Regular',Menlo,Consolas,monospace" font-size="15">
+      <text x="675" y="124" fill="#7E76A0">Select an artisan command:</text>
+
+      <!-- highlighted selected row -->
+      <rect x="667" y="138" width="451" height="26" rx="6" fill="#2A2150"/>
+      <text x="679" y="156" fill="#FF2D20" font-weight="700">›</text>
+      <text x="697" y="156" fill="#FFFFFF">make:model <tspan fill="#6F6790">- Create a new Eloquent model</tspan></text>
+
+      <text x="697" y="184" fill="#B9B2D6">migrate <tspan fill="#6F6790">- Run the database migrations</tspan></text>
+      <text x="697" y="208" fill="#B9B2D6">route:list <tspan fill="#6F6790">- List all routes</tspan></text>
+
+      <!-- preview line -->
+      <text x="675" y="252" fill="#FBBF24">Executing:</text>
+      <text x="757" y="252" fill="#C9C2E6">artisan make:model <tspan fill="#A78BFA">Product</tspan></text>
+      <text x="675" y="276" fill="#34D399">✓ Model created successfully.</text>
+
+      <!-- cursor -->
+      <rect x="675" y="293" width="10" height="17" fill="#34D399" opacity="0.9"/>
+    </g>
+  </g>
+</svg>

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="art/artisan-wizard.svg" alt="Artisan Wizard — interactive Artisan commands for Laravel" width="100%">
+</p>
+
 # Artisan Wizard — interactive Artisan commands for Laravel
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/meego47/artisan-wizard.svg?style=flat-square)](https://packagist.org/packages/meego47/artisan-wizard)
