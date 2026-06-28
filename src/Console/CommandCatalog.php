@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Antcode\ArtisanWizard\Console;
 
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
 
 /**
  * The set of artisan commands the wizard can run. Wraps the console
@@ -13,13 +14,13 @@ use Symfony\Component\Console\Application;
  */
 class CommandCatalog
 {
-    /** @var array<string, \Symfony\Component\Console\Command\Command>|null */
+    /** @var array<string, Command>|null */
     private ?array $commands = null;
 
     public function __construct(private readonly Application $application) {}
 
     /**
-     * @return array<string, \Symfony\Component\Console\Command\Command>
+     * @return array<string, Command>
      */
     public function all(): array
     {
