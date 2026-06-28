@@ -2,262 +2,150 @@
 
 namespace Antcode\ArtisanWizard\Commands;
 
+use Antcode\ArtisanWizard\Console\CollectedInput;
+use Antcode\ArtisanWizard\Console\CommandCatalog;
+use Antcode\ArtisanWizard\Console\CommandSchema;
+use Antcode\ArtisanWizard\Console\Field;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Throwable;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
 class ArtisanWizardCommand extends Command
 {
+    /**
+     * Sentinel choices in the menus. The `__` prefix keeps them from colliding
+     * with real command, argument, or option names.
+     */
+    private const RUN = '__run';
+
+    private const BACK = '__back';
+
+    private const EXIT = '__exit';
+
     public $signature = 'artisan-wizard:run';
 
     public $description = 'List and execute any artisan command interactively';
 
-    public function handle(): void
+    public function handle(): int
     {
-        while (true) {
-            // Step 1: Retrieve all available commands with descriptions
-            $commands = $this->getAllCommands();
+        $application = $this->getApplication();
 
-            // Step 2: Let the user select a command
-            $commandChoice = select(
+        if ($application === null) {
+            $this->error('The console application is not available.');
+
+            return self::FAILURE;
+        }
+
+        $catalog = new CommandCatalog($application);
+
+        while (true) {
+            $choices = $catalog->labels();
+            $choices[self::EXIT] = 'Exit the wizard';
+
+            $commandName = select(
                 label: 'Select an artisan command to execute:',
-                options: array_keys($commands),
+                options: $choices,
                 scroll: 50,
             );
 
-            // Extract command name
-            $commandName = $commands[$commandChoice];
+            if ($commandName === self::EXIT) {
+                return self::SUCCESS;
+            }
 
-            // Step 3: Retrieve arguments and options for the selected command
-            $commandDetails = $this->getCommandArgumentsAndOptions($commandName);
+            $this->configureAndRun($commandName, $catalog->schemaFor($commandName));
+        }
+    }
 
-            $collectedArguments = [];
-            $collectedOptions = [];
+    /**
+     * Let the user fill the command's fields and optionally run it. Returns the
+     * command exit code, or null when the user goes back to the command list.
+     */
+    private function configureAndRun(string $commandName, CommandSchema $schema): ?int
+    {
+        $input = new CollectedInput;
 
-            // Step 4: Collect arguments and options interactively
-            while (true) {
-                $this->displayCollectedFields($collectedArguments, $collectedOptions);
+        while (true) {
+            $this->displaySummary($input, $schema);
 
-                // Get the remaining fields to fill
-                $remainingFields = $this->getRemainingFields($commandDetails, $collectedArguments, $collectedOptions);
+            $menu = $input->remainingFields($schema);
+            if ($input->allRequiredFilled($schema)) {
+                $menu[self::RUN] = 'Run command with current settings';
+            }
+            $menu[self::BACK] = 'Back to command selection';
 
-                // Add the "Run Command" option (only if required fields are filled)
-                if ($this->allRequiredFieldsFilled($commandDetails, $collectedArguments, $collectedOptions)) {
-                    $remainingFields['run'] = 'Run command with current settings';
-                }
+            $selected = select(
+                label: 'Select a field to fill (or run the command):',
+                options: $menu,
+                scroll: 50,
+            );
 
-                // Prompt user to choose a field
-                $selectedField = select(
-                    label: 'Select a field to fill (or run the command):',
-                    options: $remainingFields,
-                    scroll: 50
-                );
+            if ($selected === self::RUN) {
+                return $this->runSelectedCommand($commandName, $schema, $input);
+            }
 
-                if ($selectedField === 'run') {
-                    $this->executeCommand($commandName, $collectedArguments, $collectedOptions);
+            if ($selected === self::BACK) {
+                return null;
+            }
 
-                    return; // Exit after running the command
-                }
-
-                // Handle the selected field
-                $this->handleSelectedField($selectedField, $commandDetails, $collectedArguments, $collectedOptions);
+            $field = $schema->field($selected);
+            if ($field !== null) {
+                $this->collectField($field, $input);
             }
         }
     }
 
-    private function getAllCommands(): array
+    private function collectField(Field $field, CollectedInput $input): void
     {
-        $allCommands = Artisan::all();
-        $commands = [];
+        if (! $field->needsValuePrompt()) {
+            $input->fill($field, true); // Boolean flag
 
-        foreach ($allCommands as $name => $command) {
-            $description = $command->getDescription() ?: 'No description provided';
-            $commands["{$name} - {$description}"] = $name;
+            return;
         }
 
-        ksort($commands); // Sort commands alphabetically
-
-        return $commands;
+        $input->fill($field, text(
+            label: $field->promptLabel(),
+            required: $field->isRequired(),
+        ));
     }
 
-    private function getCommandArgumentsAndOptions(string $commandName): array
-    {
-        $command = Artisan::all()[$commandName];
-        $definition = $command->getDefinition();
-
-        // Retrieve arguments
-        $arguments = [];
-        foreach ($definition->getArguments() as $argument) {
-            $arguments[$argument->getName()] = [
-                'description' => $argument->getDescription() ?: 'No description provided',
-                'isRequired' => $argument->isRequired(),
-                'isArray' => $argument->isArray(),
-            ];
-        }
-
-        // Retrieve options
-        $options = [];
-        foreach ($definition->getOptions() as $option) {
-            $options[$option->getName()] = [
-                'description' => $option->getDescription() ?: 'No description provided',
-                'isRequired' => $option->isValueRequired(),
-                'isArray' => $option->isArray(),
-                'needsValue' => $option->acceptValue(), // Add flag for options requiring a value
-            ];
-        }
-
-        return compact('arguments', 'options');
-    }
-
-    private function displayCollectedFields(array $arguments, array $options): void
+    private function displaySummary(CollectedInput $input, CommandSchema $schema): void
     {
         $this->info("\nFilled fields:");
 
-        foreach ($arguments as $name => $value) {
-            $this->line("  Argument: {$name}={$value}");
+        $lines = $input->summaryLines($schema);
+
+        foreach ($lines as $line) {
+            $this->line('  '.$line);
         }
 
-        foreach ($options as $name => $value) {
-            $formattedValue = is_array($value) ? implode(', ', $value) : $value;
-            if ($formattedValue) {
-                $this->line("  Option: --{$name}={$formattedValue}");
-            } else {
-                $this->line("  Option: --{$name}");
-            }
-        }
-
-        if (empty($arguments) && empty($options)) {
+        if ($lines === []) {
             $this->line('  (None yet)');
         }
     }
 
-    private function getRemainingFields(array $commandDetails, array $arguments, array $options): array
+    private function runSelectedCommand(string $commandName, CommandSchema $schema, CollectedInput $input): int
     {
-        $remainingFields = [];
+        $this->line("\n<info>Executing:</info> artisan ".$input->describe($commandName, $schema));
 
-        // Process arguments
-        foreach ($commandDetails['arguments'] as $name => $details) {
-            if (! isset($arguments[$name])) {
-                $prefix = $details['isRequired'] ? '[Required] ' : '';
-                $remainingFields[$name] = "{$prefix}Fill argument: {$name} - {$details['description']}";
-            }
+        try {
+            $exitCode = Artisan::call($commandName, $input->toArtisanInput($schema));
+        } catch (Throwable $e) {
+            $this->error("\nCommand failed: ".$e->getMessage());
+
+            return self::FAILURE;
         }
 
-        // Process options
-        foreach ($commandDetails['options'] as $name => $details) {
-            if (isset($options[$name]) && ! $details['isArray']) {
-                continue; // Skip non-array options already set
-            }
-
-            if ($details['needsValue']) {
-                $prefix = $details['isRequired'] ? '[Required] ' : '';
-                $remainingFields[$name] = "{$prefix}Fill option with value: {$name} - {$details['description']}";
-            } else {
-                $remainingFields[$name] = "Append option: {$name} - {$details['description']}";
-            }
-        }
-
-        return $remainingFields;
-    }
-
-    private function handleSelectedField(
-        string $selectedField,
-        array $commandDetails,
-        array &$collectedArguments,
-        array &$collectedOptions
-    ): void {
-        if (isset($commandDetails['arguments'][$selectedField])) {
-            $collectedArguments[$selectedField] = text(
-                label: "Fill argument: {$selectedField} - {$commandDetails['arguments'][$selectedField]['description']}"
-            );
-        } elseif (isset($commandDetails['options'][$selectedField])) {
-            $option = $commandDetails['options'][$selectedField];
-
-            if ($option['needsValue']) {
-                if ($option['isArray']) {
-                    $collectedOptions[$selectedField][] = text(
-                        label: "Fill option with value (array): {$selectedField} - {$option['description']}"
-                    );
-                } else {
-                    $collectedOptions[$selectedField] = text(
-                        label: "Fill option with value: {$selectedField} - {$option['description']}"
-                    );
-                }
-            } else {
-                $collectedOptions[$selectedField] = true; // For boolean flags
-            }
-        }
-    }
-
-    private function executeCommand(string $commandName, array $arguments, array $options): void
-    {
-        // Prepare arguments and options for Artisan::call
-        $input = $arguments;
-
-        foreach ($options as $key => $value) {
-            if ($value === true) {
-                // For boolean options
-                $input["--{$key}"] = true;
-            } elseif (is_array($value)) {
-                // For options with multiple values (arrays)
-                $input["--{$key}"] = $value;
-            } else {
-                // For regular options with single values
-                $input["--{$key}"] = $value;
-            }
-        }
-        $input['--ansi'] = true; // Enable ANSI colors in the output
-
-        // Log the command being executed
-        $this->line("\n<info>Executing:</info> artisan ".$this->buildCommandString($commandName, $input));
-
-        // Call the command
-        Artisan::call($commandName, $input);
-
-        // Display the output of the command
         $this->output->write(Artisan::output());
-        $this->info("\nCommand executed successfully!");
-    }
 
-    private function buildCommandString(string $commandName, array $input): string
-    {
-        $parts = [$commandName];
-
-        foreach ($input as $key => $value) {
-            if (str_starts_with($key, '--')) {
-                if ($value === true) {
-                    $parts[] = $key; // Boolean flag
-                } elseif (is_array($value)) {
-                    foreach ($value as $item) {
-                        $parts[] = "{$key}={$item}";
-                    }
-                } else {
-                    $parts[] = "{$key}={$value}";
-                }
-            } else {
-                $parts[] = $value; // Positional argument
-            }
+        if ($exitCode === self::SUCCESS) {
+            $this->info("\nCommand executed successfully!");
+        } else {
+            $this->error("\nCommand exited with code {$exitCode}.");
         }
 
-        return implode(' ', $parts);
-    }
-
-    private function allRequiredFieldsFilled(array $commandDetails, array $arguments, array $options): bool
-    {
-        foreach ($commandDetails['arguments'] as $name => $details) {
-            if ($details['isRequired'] && ! isset($arguments[$name])) {
-                return false;
-            }
-        }
-
-        foreach ($commandDetails['options'] as $name => $details) {
-            if ($details['isRequired'] && ! isset($options[$name])) {
-                return false;
-            }
-        }
-
-        return true;
+        return $exitCode;
     }
 }
