@@ -82,8 +82,7 @@
       <text x="697" y="208" fill="#B9B2D6">route:list <tspan fill="#6F6790">- List all routes</tspan></text>
 
       <!-- preview line -->
-      <text x="675" y="252" fill="#FBBF24">Executing:</text>
-      <text x="757" y="252" fill="#C9C2E6">artisan make:model <tspan fill="#A78BFA">Product</tspan></text>
+      <text x="675" y="252" fill="#FBBF24">Executing: <tspan fill="#C9C2E6">artisan make:model </tspan><tspan fill="#A78BFA">Product</tspan></text>
       <text x="675" y="276" fill="#34D399">✓ Model created successfully.</text>
 
       <!-- cursor -->
